@@ -11,6 +11,9 @@ from datasets.load_test_data import Load_Test_Data
 import argparse
 import os
 import skimage
+import matplotlib.pyplot as plt
+import cv2
+
 # os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 def evaluate(Dec, Edge, eval_loader, result_root, save_name_list):
@@ -61,22 +64,27 @@ def evaluate(Dec, Edge, eval_loader, result_root, save_name_list):
         T_dec2 = np.transpose(T_dec2[0].data.cpu().numpy(), (1,2,0))
         R_dec2 = np.transpose(R_dec2[0].data.cpu().numpy(), (1,2,0))
         
+        
         # Save Results
         if not os.path.exists('%s%s'%(result_root, save_name_list[batch_idx])):
             os.makedirs('%s%s'%(result_root, save_name_list[batch_idx]))
-        skimage.io.imsave('%s%s/I.png'%(result_root, save_name_list[batch_idx]), I)
-        skimage.io.imsave('%s%s/T.png'%(result_root, save_name_list[batch_idx]), T)
-        skimage.io.imsave('%s%s/ours.png'%(result_root, save_name_list[batch_idx]), T_dec2)
-        skimage.io.imsave('%s%s/ours_R.png'%(result_root, save_name_list[batch_idx]), R_dec2)
+        add = result_root + save_name_list[batch_idx]
+        
+        cv2.imwrite(add + '/I.png', np.uint8(np.clip(I[...,::-1]*255, 0, 255)))
+        cv2.imwrite(add + '/T.png', np.uint8(np.clip(T[...,::-1]*255, 0, 255)))
+        cv2.imwrite(add + '/ours.png', np.uint8(np.clip(T_dec2[...,::-1]*255, 0, 255)))
+        cv2.imwrite(add + '/ours_R.png', np.uint8(np.clip(R_dec2[...,::-1]*255, 0, 255)))
+        
   
     # Compute Runtime
+    # print(len(eval_loader.dataset))
     print("average estimate time: %f (milliseconds)" %(total_time/len(eval_loader.dataset)))
     
     
 
 if __name__ == '__main__':
     
-    DATA_DIR = './samples/test_data/'
+    DATA_DIR = './samples/'
     WEIGHT_DIR = './weights/'
     SAVE_DIR = './samples/test_results/'
 
